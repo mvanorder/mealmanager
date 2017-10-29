@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+      <div class="row">
+        <div class="col-12">
+          <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div id="ingredients">
+              <div type="button" class="btn btn-success" onclick="addIngredient()">Add ingredient</div><br />
+
+            </div>
+            {% for ingredient in ingredients %}
+              {{ ingredient.as_p }}
+            {% endfor %}
+            <input type="submit" value="Save" class="btn btn-primary" />
+          </form>
+        </div>
+      </div>
+{% endblock %}
+
+{% block custom_js %}
+      <script>
+        var ingredients = [];
+
+        function new_ingredient() {
+          // Create container div for ingredient fields
+          var container = document.createElement('div');
+          container.id = 'id_ingredient_' + ingredients.length;
+
+          var ingredient_qty_label = document.createElement('label');
+          ingredient_qty_label.innerHTML = 'Qty:';
+
+          var ingredient_qty = document.createElement('input');
+          ingredient_qty.name = 'ingredient_' + ingredients.length + '-{{ ingredient_item.quantity_amount.html_name }}';
+          ingredient_qty_label.setAttribute('for', 'id_' + ingredient_qty.name);
+          ingredient_qty.id = 'id_' + ingredient_qty.name;
+          ingredient_qty.type = 'text';
+          ingredient_qty.setAttribute('maxlength', '{{ ingredient_item.name.field.max_length }}');
+          ingredient_qty.setAttribute('placeholder', 'e.g. 1 1/4');
+          ingredient_qty.setAttribute('size', '6');
+          ingredient_qty.required = {% if ingredient_item.name.field.required %}true{% else %}false{% endif %};
+          container.appendChild(ingredient_qty_label)
+          container.appendChild(ingredient_qty)
+
+          // Create name field
+          var ingredient_name_label = document.createElement('label');
+          var ingredient_name = document.createElement('input');
+
+          ingredient_name.name = 'ingredient_' + ingredients.length + '-{{ ingredient_item.ingredient.html_name }}';
+          ingredient_name_label.innerHTML = '{{ ingredient_item.name.field.label }}:';
+          ingredient_name_label.setAttribute('for', 'id_' + ingredient_name.name);
+          ingredient_name.id = 'id_' + ingredient_name.name;
+          ingredient_name.type = 'text';
+          ingredient_name.setAttribute('maxlength', '{{ ingredient_item.name.field.max_length }}');
+          ingredient_name.setAttribute('placeholder', 'Ingredient name');
+          ingredient_name.required = {% if ingredient_item.name.field.required %}true{% else %}false{% endif %};
+
+          container.appendChild(ingredient_name_label)
+          container.appendChild(ingredient_name)
+
+          // Create remove button
+          var remove_button = document.createElement('div');
+          remove_button.innerHTML = '-';
+          remove_button.setAttribute('type', 'button');
+          remove_button.setAttribute('class', 'btn btn-danger');
+          remove_button.setAttribute('onclick', 'delIngredient(\'' + container.id + '\')');
+          container.appendChild(remove_button)
+
+          return container;
+        }
+
+        function addIngredient() {
+          ingredients[ingredients.length] = new_ingredient();
+          $('#ingredients').append(ingredients[ingredients.length - 1]);
+          /*
+          $('#ingredients').append(ingredients[ingredients.length - 1]['name']['label']);
+          $('#ingredients').append(ingredients[ingredients.length - 1]['name']['field']);
+          $('#ingredients').append(ingredients[ingredients.length - 1]['remove']);
+          $('#ingredients').append('<br />');
+          */
+        }
+
+        function delIngredient(id) {
+          $('#' + id).remove();
+        }
+
+        addIngredient();
+      </script>
+{% endblock %}

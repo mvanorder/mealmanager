@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+      <div class="row">
+        <div class="col-sm-6, col-md-4">
+          picture goes here.
+        </div>
+        <div class="col-sm-6, col-md-8">
+          <h1>{{ object.name }}</h1>
+          <a type="button" class="btn btn-primary" href="{% url 'recipes.views.update' object.id %}">Edit</a><br />
+          description goes here
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <br />
+          <h3>Directions:</h3><br />
+          {{ object.directions }}<br />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <h3>Ingredients:</h3>
+          {% for recipe_ingredient in recipe_ingredients %}
+            {{ recipe_ingredient.quantity_amount }}
+            {{ recipe_ingredient.ingredient.name }}<br />
+          {% endfor %}
+        </div>
+      </div>
+{% endblock %}
