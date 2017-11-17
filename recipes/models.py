@@ -20,6 +20,9 @@ class Quantity(models.Model):
     scale = models.CharField(max_length=15)
     quantity_type = models.ForeignKey(QuantityType)
 
+    def __str__(self):
+        return str(self.name)
+
 
 class Recipe(models.Model):
     name = models.CharField(max_length=30)

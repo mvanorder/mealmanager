@@ -38,7 +38,8 @@ class CreateRecipeView(CreateView):
         # Get HTTP response from processing the form in self.form_class
         response = super(CreateRecipeView, self).post(self, request, *args, **kwargs)
 
-        # If a response of 200 is returned, then the form failed and isn't redirecting to a new recipe.
+        # If a response of 200 is returned, then the form failed and isn't redirecting to a new
+        # recipe.
         if response.status_code == 200:
             return response
 
@@ -50,7 +51,8 @@ class CreateRecipeView(CreateView):
         # Create a list to store new recipe ingredients in.
         recipe_ingredient_forms = list()
 
-        # Create a duplicate of the post data so that it can be modified in order to set the recipe for each ingredient.
+        # Create a duplicate of the post data so that it can be modified in order to set the recipe
+        # for each ingredient.
         data = copy.deepcopy(request.POST)
 
         for prefix in ingrdient_form_prefixes:
@@ -58,9 +60,12 @@ class CreateRecipeView(CreateView):
             data[prefix + '-recipe'] = self.get_form().instance.id
 
             # Find or create the ingredient from the ingredient table.
-            data[prefix + '-ingredient'] = Ingredient.objects.get_or_create(name=data[prefix + '-ingredient'])[0].id
+            data[prefix + '-ingredient'] = Ingredient.objects.get_or_create(
+                name=data[prefix + '-ingredient']
+            )[0].id
 
-            # Instantiate a form with the provided data and append it to the list of recipe ingreients.
+            # Instantiate a form with the provided data and append it to the list of recipe
+            # ingreients.
             recipe_ingredient_forms.append(RecipeIngredientForm(data=data, prefix=prefix))
 
             # Ensure the ingredient form is valid.
@@ -87,6 +92,17 @@ class RecipeView(DetailView):
 class UpdateRecipeView(UpdateView):
     model = Recipe
     form_class = RecipeForm
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(UpdateRecipeView, self).get_context_data(*args, **kwargs)
+        context['ingredient_item'] = RecipeIngredientForm()
+        from pprint import pprint
+        context['ingredients'] = list(
+            RecipeIngredientForm(instance=recipe_ingredient)
+            for recipe_ingredient in self.object.recipe_ingredients
+            )
+        #pprint(context['ingredient_item'].__dict__)
+        return context
 
     def post(self, request, *args, **kwargs):
         return super(UpdateRecipeView, self).post(self, request, *args, **kwargs)
