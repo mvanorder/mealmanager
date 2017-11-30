@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
       <div class="row">
@@ -10,9 +11,13 @@
               <div type="button" class="btn btn-success" onclick="addIngredient()">Add ingredient</div><br />
 
             </div>
-            {% for ingredient in ingredients %}
-              {{ ingredient.as_p }}
-            {% endfor %}
+            { for ingredient in ingredients %}
+              { ingredient.as_p }}
+            { endfor %}
+            <br/>
+            <div class="multiform">
+              {{ ingredient_item.as_p }}
+            </div>
             <input type="submit" value="Save" class="btn btn-primary" />
           </form>
         </div>
@@ -86,5 +91,11 @@
         }
 
         addIngredient();
+
+      </script>
+      <script src="{% static 'js/multiform.js' %}"></script>
+      <script>
+        // $( ".multiform").multiForm("{{ ingredient_item.prefix }}");
+        $( ".multiform").multiForm("test_prefix");
       </script>
 {% endblock %}
