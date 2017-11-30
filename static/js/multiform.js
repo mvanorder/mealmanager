@@ -116,33 +116,27 @@ function cloneFormNodes(nodes, prefix) {
 }
 
 /**
- * Class representing a template instance of the form to be replicated.
- * @class
+ * Represents a template instance of the form to be replicated.
+ * @constructor
+ * @param {object} baseObject - The DOM object containing the form objects to be templated.
+ * @param {string} prefix - The prefix to set on all field names.
  */
-class Template {
-  /**
-   * Represents a template instance.
-   * @constructor
-   * @param {object} baseObject - The DOM object containing the form objects to be templated.
-   * @param {string} prefix - The prefix to set on all field names.
-   */
-  constructor(baseObject, prefix) {
-    this.nodes = Array();
-    this.prefix = prefix;
-    this.currentIteration = 0;
+function Template(baseObject, prefix) {
+  this.nodes = Array();
+  this.prefix = prefix;
+  this.currentIteration = 0;
 
-    // Create a template list of nodes from the nodes in the baseObject and remove the original nodes.
-    for (var nodeIndex = 0, nodeCount = baseObject.childNodes.length; nodeIndex < nodeCount; nodeIndex++) {
-      this.nodes[nodeIndex] = baseObject.childNodes[0].cloneNode(true);
-      baseObject.removeChild(baseObject.childNodes[0]);
-    }
+  // Create a template list of nodes from the nodes in the baseObject and remove the original nodes.
+  for (var nodeIndex = 0, nodeCount = baseObject.childNodes.length; nodeIndex < nodeCount; nodeIndex++) {
+    this.nodes[nodeIndex] = baseObject.childNodes[0].cloneNode(true);
+    baseObject.removeChild(baseObject.childNodes[0]);
   }
 
   /**
    * Creates a new instance from the template.
    * @return {object} A div element containing a clone of the nodes in this template.
    */
-  createInstance() {
+  this.createInstance = function() {
     var prefix = "";
     var nodes;
     var instanceContainer = document.createElement('div');
@@ -167,33 +161,27 @@ class Template {
 }
 
 /**
- * Class representing the container for the multiform instances and controls.
- * @class
+ * Represents the container for the multiform instances and controls.
+ * @constructor
+ * @param {object} containerObject - The DOM object containing multiform.
  */
-class MultiformContainer {
-  /**
-   * Represents a container instance.
-   * @constructor
-   * @param {object} containerObject - The DOM object containing multiform.
-   */
-  constructor(containerObject) {
-    this.container = containerObject;
-    this.controlsContainer = document.createElement('div');
-    this.addButton = document.createElement('div');
+function MultiformContainer(containerObject) {
+  this.container = containerObject;
+  this.controlsContainer = document.createElement('div');
+  this.addButton = document.createElement('div');
 
-    this.addButton.innerHTML = 'Add';
-    this.addButton.setAttribute('type', 'button');
-    this.addButton.setAttribute('class', 'btn btn-success');
-    this.addButton.setAttribute('id', 'multiform-add');
-    this.controlsContainer.appendChild(this.addButton);
-    this.container.appendChild(this.controlsContainer);
-  }
+  this.addButton.innerHTML = 'Add';
+  this.addButton.setAttribute('type', 'button');
+  this.addButton.setAttribute('class', 'btn btn-success');
+  this.addButton.setAttribute('id', 'multiform-add');
+  this.controlsContainer.appendChild(this.addButton);
+  this.container.appendChild(this.controlsContainer);
 
   /**
    * Append a child to the container.  This is simply created to prevent container.container.appendChild()
    * @param {object} child - The DOM object to append to the container
    */
-  appendChild(child) {
+  this.appendChild = function(child) {
     this.container.appendChild(child);
   }
 }
