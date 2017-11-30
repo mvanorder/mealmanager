@@ -1,3 +1,57 @@
+// https://tc39.github.io/ecma262/#sec-array.prototype.includes
+if (!Array.prototype.includes) {
+  Object.defineProperty(Array.prototype, 'includes', {
+    value: function(searchElement, fromIndex) {
+
+      if (this == null) {
+        throw new TypeError('"this" is null or not defined');
+      }
+
+      // 1. Let O be ? ToObject(this value).
+      var o = Object(this);
+
+      // 2. Let len be ? ToLength(? Get(O, "length")).
+      var len = o.length >>> 0;
+
+      // 3. If len is 0, return false.
+      if (len === 0) {
+        return false;
+      }
+
+      // 4. Let n be ? ToInteger(fromIndex).
+      //    (If fromIndex is undefined, this step produces the value 0.)
+      var n = fromIndex | 0;
+
+      // 5. If n ≥ 0, then
+      //  a. Let k be n.
+      // 6. Else n < 0,
+      //  a. Let k be len + n.
+      //  b. If k < 0, let k be 0.
+      var k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+
+      function sameValueZero(x, y) {
+        return x === y || (typeof x === 'number' && typeof y === 'number' && isNaN(x) && isNaN(y));
+      }
+
+      // 7. Repeat, while k < len
+      while (k < len) {
+        // a. Let elementK be the result of ? Get(O, ! ToString(k)).
+        // b. If SameValueZero(searchElement, elementK) is true, return true.
+        if (sameValueZero(o[k], searchElement)) {
+          return true;
+        }
+        // c. Increase k by 1.
+        k++;
+      }
+
+      // 8. Return false
+      return false;
+    }
+  });
+}
+
+var FORM_ELEMENTS = ["DATALIST", "INPUT", "OPTGROUP", "SELECT", "TEXTAREA"];
+
 /**
  * Clone nodes and add a prefix to ids, names, and for attributes on fields and labels.
  * @param {object} nodes - A nodes list of array of nodes to be cloned.
@@ -7,51 +61,35 @@ function cloneFormNodes(nodes, prefix) {
   var newNodes = new Array();
 
   for(var i = 0; i < nodes.length; i++){
-    // createElement doesn't work with #test nodes, but since it's just text it can be cloned anyway.
-    // All other elements need fresh elements created to modifying the original.
-    if(nodes[i].nodeName != "#text") {
+    if (nodes[i].nodeName != "#text") {
+      // Use createElement to create clones for all except #text nodes to avoid modifying the original.
       newNodes[i] = document.createElement(nodes[i].nodeName);
-    } else {
-      newNodes[i] = nodes[i].cloneNode(true)
-    }
 
-    // Copy any attributes needed to the new objects, prefixing ids, names and for fields.
-    switch(nodes[i].nodeName) {
-      case "#text":
-        break;
-      case "INPUT":
-        for(var attrIndex = 0, attrSize = nodes[i].attributes.length; attrIndex < attrSize; attrIndex++){
-          newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
-        }
+      // Copy all attributes from the original node to the new node
+      for (var attrIndex = 0, attrSize = nodes[i].attributes.length; attrIndex < attrSize; attrIndex++) {
+        newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
+      }
+
+      if(FORM_ELEMENTS.includes(nodes[i].nodeName)){
+        // Prefix ids and names on fields.
         newNodes[i].name = prefix + nodes[i].name;
         newNodes[i].id = prefix + nodes[i].id;
-        break;
-      case "LABEL":
-        for(var attrIndex = 0, attrSize = nodes[i].attributes.length; attrIndex < attrSize; attrIndex++){
-          newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
-        }
+      } else if (nodes[i].nodeName == "LABEL") {
+        // Prefix for attributes on labels.
         newNodes[i].setAttribute('for', prefix + nodes[i].getAttribute('for'));
-        break;
-      case "OPTION":
-        for(var attrIndex = 0, attrSize = nodes[i].attributes.length; attrIndex < attrSize; attrIndex++){
-          newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
+      } else {
+        // If an element doesn't fall into either of the above statements then only apply the prefix if an is or name
+        // exists.
+        if (nodes[i].id) {
+          newNodes[i].id = prefix + nodes[i].id;
         }
-        break;
-      case "P":
-        for(var attrIndex = 0, attrSize = nodes[i].attributes.length; attrIndex < attrSize; attrIndex++){
-          newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
+        if (nodes[i].name) {
+          newNodes[i].name = prefix + nodes[i].name;
         }
-        break;
-      case "SELECT":
-        for(var attrIndex = 0, attrSize = nodes[i].attributes.length; attrIndex < attrSize; attrIndex++){
-          newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
-        }
-        newNodes[i].name = prefix + nodes[i].name;
-        newNodes[i].id = prefix + nodes[i].id;
-        break;
-      default:
-        console.log("nodeName:", nodes[i].nodeName);
-        console.log(nodes[i]);
+      }
+    } else {
+      // Clone any simple #text nodes.
+      newNodes[i] = nodes[i].cloneNode(true)
     }
 
     // If the current node has children, process them as well.
