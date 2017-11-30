@@ -11,12 +11,12 @@
               <div type="button" class="btn btn-success" onclick="addIngredient()">Add ingredient</div><br />
 
             </div>
-            { for ingredient in ingredients %}
-              { ingredient.as_p }}
-            { endfor %}
+            {% for ingredient in ingredients %}
+              {{ ingredient }}<br/>
+            {% endfor %}
             <br/>
             <div class="multiform">
-              {{ ingredient_item.as_p }}
+              {{ ingredient_item }}
             </div>
             <input type="submit" value="Save" class="btn btn-primary" />
           </form>

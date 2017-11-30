@@ -140,6 +140,12 @@ function Template(baseObject, prefix) {
     var prefix = "";
     var nodes;
     var instanceContainer = document.createElement('div');
+    var removeButton = document.createElement('div');
+
+    // Create a button to remove this instance.
+    removeButton.innerHTML = 'Remove';
+    removeButton.setAttribute('type', 'button');
+    removeButton.setAttribute('class', 'btn btn-danger multiform-remove');
 
     // Set up the instance prefix as "[<prefix>_]<iteration>-".
     if (this.prefix) {
@@ -147,11 +153,18 @@ function Template(baseObject, prefix) {
     }
     prefix += this.currentIteration.toString() + "-";
 
+    // Set the item container ID and the remove button data to point to it.
+    instanceContainer.id = prefix + 'item_container';
+    removeButton.setAttribute('data-itemcontainer', instanceContainer.id);
+
     // Create a set of nodes and populate the new container.
     nodes = cloneFormNodes(this.nodes, prefix);
     for(var node in nodes) {
       instanceContainer.appendChild(nodes[node]);
     }
+
+    // Append the remove button last.
+    instanceContainer.appendChild(removeButton);
 
     // Increment the iteration counter.
     this.currentIteration++;
@@ -183,6 +196,12 @@ function MultiformContainer(containerObject) {
    */
   this.appendChild = function(child) {
     this.container.appendChild(child);
+    // Unbind click handlers as they stack
+    $(".multiform-remove").unbind("click");
+    // Handle remove button click to remove an item
+    $(".multiform-remove").click(function() {
+      $("#" + $(this).data("itemcontainer")).remove();
+    });
   }
 }
 
