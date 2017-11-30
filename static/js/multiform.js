@@ -1,3 +1,15 @@
+/*
+ *
+ * MultiForm 0.1 - Replicate a set of fields in a form for a one-to-many form.
+ * Version 0.1b
+ * @requires jQuery v3.2.1
+ *
+ * Copyright (c) 2017 Malcolm VanOrder
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/mit-license.php
+ *
+ */
+
 // https://tc39.github.io/ecma262/#sec-array.prototype.includes
 if (!Array.prototype.includes) {
   Object.defineProperty(Array.prototype, 'includes', {
@@ -60,7 +72,7 @@ var FORM_ELEMENTS = ["DATALIST", "INPUT", "OPTGROUP", "SELECT", "TEXTAREA"];
 function cloneFormNodes(nodes, prefix) {
   var newNodes = new Array();
 
-  for(var i = 0; i < nodes.length; i++){
+  for (var i = 0; i < nodes.length; i++) {
     if (nodes[i].nodeName != "#text") {
       // Use createElement to create clones for all except #text nodes to avoid modifying the original.
       newNodes[i] = document.createElement(nodes[i].nodeName);
@@ -70,7 +82,7 @@ function cloneFormNodes(nodes, prefix) {
         newNodes[i].setAttribute(nodes[i].attributes[attrIndex].name, nodes[i].attributes[attrIndex].value);
       }
 
-      if(FORM_ELEMENTS.includes(nodes[i].nodeName)){
+      if (FORM_ELEMENTS.includes(nodes[i].nodeName)) {
         // Prefix ids and names on fields.
         newNodes[i].name = prefix + nodes[i].name;
         newNodes[i].id = prefix + nodes[i].id;
@@ -93,9 +105,9 @@ function cloneFormNodes(nodes, prefix) {
     }
 
     // If the current node has children, process them as well.
-    if(nodes[i].childNodes.length > 0) {
+    if (nodes[i].childNodes.length > 0) {
       var newChildNodes = cloneFormNodes(nodes[i].childNodes, prefix);
-      for(var childNodeIndex = 0, size = newChildNodes.length; childNodeIndex < size ; childNodeIndex++){
+      for (var childNodeIndex = 0, size = newChildNodes.length; childNodeIndex < size ; childNodeIndex++) {
         newNodes[i].appendChild(newChildNodes[childNodeIndex])
       }
     }
@@ -120,7 +132,7 @@ class Template {
     this.currentIteration = 0;
 
     // Create a template list of nodes from the nodes in the baseObject and remove the original nodes.
-    for(var nodeIndex = 0, nodeCount = baseObject.childNodes.length; nodeIndex < nodeCount; nodeIndex++){
+    for (var nodeIndex = 0, nodeCount = baseObject.childNodes.length; nodeIndex < nodeCount; nodeIndex++) {
       this.nodes[nodeIndex] = baseObject.childNodes[0].cloneNode(true);
       baseObject.removeChild(baseObject.childNodes[0]);
     }
@@ -136,7 +148,7 @@ class Template {
     var instanceContainer = document.createElement('div');
 
     // Set up the instance prefix as "[<prefix>_]<iteration>-".
-    if(this.prefix){
+    if (this.prefix) {
       prefix = this.prefix + "_";
     }
     prefix += this.currentIteration.toString() + "-";
