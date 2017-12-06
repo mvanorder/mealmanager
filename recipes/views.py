@@ -25,6 +25,7 @@ class CreateRecipeView(CreateView):
     def get_context_data(self, *args, **kwargs):
         context = super(CreateRecipeView, self).get_context_data(*args, **kwargs)
         context['ingredient_item'] = RecipeIngredientForm()
+        context['ingredient_prefix'] = 'ingredient'
         return context
 
     def post(self, request, *args, **kwargs):
@@ -96,6 +97,7 @@ class UpdateRecipeView(UpdateView):
     def get_context_data(self, *args, **kwargs):
         context = super(UpdateRecipeView, self).get_context_data(*args, **kwargs)
         context['ingredient_item'] = RecipeIngredientForm()
+        context['ingredient_prefix'] = 'ingredient'
         from pprint import pprint
         context['ingredients'] = list(
             RecipeIngredientForm(instance=recipe_ingredient)
