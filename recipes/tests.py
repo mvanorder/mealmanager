@@ -94,7 +94,6 @@ class TestRecipe(TestCase):
     def test_00_create_recipe_fail(self):
         """
         Creating a recipe without a name should fail.
-        :return:
         """
         # Build post data
         post_data = {
@@ -115,7 +114,6 @@ class TestRecipe(TestCase):
     def test_01_create_and_get_recipe(self):
         """
         A recipe can be created and retrieved.
-        :return:
         """
         # Build post data
         post_data = {
