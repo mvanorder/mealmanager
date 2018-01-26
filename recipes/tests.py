@@ -189,3 +189,7 @@ class TestRecipe(TestCase):
             fetch_redirect_response=True)
         recipe = Recipe.objects.get(name='foo')
         self.assertContains(response, 'Quantity is not a valid number or fraction.', status_code=302)
+
+    def test_03_update_recipe(self):
+        # Create a recipe to update.
+        pass

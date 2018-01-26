@@ -1,6 +1,7 @@
 from decimal import Decimal
 import copy
 import re
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
@@ -93,11 +94,12 @@ class RecipeView(DetailView):
 class UpdateRecipeView(UpdateView):
     model = Recipe
     form_class = RecipeForm
+    ingredient_prefix = 'ingredient'
 
     def get_context_data(self, *args, **kwargs):
         context = super(UpdateRecipeView, self).get_context_data(*args, **kwargs)
         context['ingredient_item'] = RecipeIngredientForm()
-        context['ingredient_prefix'] = 'ingredient'
+        context['ingredient_prefix'] = self.ingredient_prefix
         from pprint import pprint
         context['ingredients'] = list(
             RecipeIngredientForm(instance=recipe_ingredient)
@@ -106,5 +108,97 @@ class UpdateRecipeView(UpdateView):
         #pprint(context['ingredient_item'].__dict__)
         return context
 
+    def save_recipe_ingredients(self, post_data):
+        """
+        1. Create a list of recipe ingredient forms
+        2. Iterate through the list of forms from the step 1 and:
+            a. Get or create the ingredient from the ingredient's table.
+            b. Get recipe's ingredient's that match.
+            c. If the ingredient isn't in that list, create a RecipeIngredient for this recipe.
+                Otherwise throw a duplicate ingredient error.
+
+        :param post_data: request.POST from the post function.
+        :return: None
+        """
+        # Create a duplicate of the post data so that it can be modified in order to set the recipe
+        # for each ingredient.
+        post_data = copy.deepcopy(post_data)
+
+        # Get a list of recipe ingredient form prefixes.
+        ingrdient_form_prefixes = list(set(
+            re.sub(r'-.+', '', key) for key in post_data if re.match(r'^ingredient_\d+-', key)
+        ))
+        print(ingrdient_form_prefixes)
+
+        # Create a list to store new recipe ingredients in.
+        recipe_ingredient_forms = list()
+
+        # Create a set of RecipeIngredients since we only want one of each ingredient.
+        recipe_ingredients = set()
+        from pprint import pprint
+
+        for prefix in ingrdient_form_prefixes:
+            # Set the recipe that owns this ingredient.
+            post_data['%s-recipe' % prefix] = self.object.id
+
+            # Find or create the ingredient from the ingredient table.
+            post_data['%s-ingredient' % prefix] = Ingredient.objects.get_or_create(
+                name=post_data[prefix + '-ingredient'].lower()
+            )[0].id
+
+            recipe_ingredient = self.object.recipe_ingredients.filter(
+                ingredient=post_data['%s-ingredient' % prefix]
+            ).first()
+
+            if recipe_ingredient is not None:
+                if recipe_ingredient.id not in recipe_ingredients:
+                    # Updated ingredient
+                    recipe_ingredients.add(recipe_ingredient.id)
+                else:
+                    # Duplicate ingredient
+                    raise Exception('duplicate ingredient %s' % post_data[prefix + '-ingredient'])
+
+            # Instantiate a form with the provided data and append it to the list of recipe
+            # ingredients.
+            recipe_ingredient_forms.append(RecipeIngredientForm(
+                data=post_data,
+                prefix=prefix,
+                instance=recipe_ingredient
+            ))
+
+            # Ensure the ingredient form is valid.
+            if recipe_ingredient_forms[-1].is_valid():
+                recipe_ingredient_id = recipe_ingredient_forms[-1].save().id
+                if recipe_ingredient is None:
+                    recipe_ingredients.add(recipe_ingredient_id)
+            else:
+                raise Exception('Recipe Ingredient not valid')
+            pprint(recipe_ingredient_forms[-1])
+
+        # Delete any recipe ingredient that's not listed in the form.
+        for recipe_ingredient in self.object.recipe_ingredients.filter(recipe_id=self.object.id). \
+                exclude(id__in=recipe_ingredients):
+            recipe_ingredient.delete()
+
     def post(self, request, *args, **kwargs):
-        return super(UpdateRecipeView, self).post(self, request, *args, **kwargs)
+        """
+        Process Post requests for creating recipes.
+        1. Save the recipe form.
+        2. Save recipe's ingredients
+
+        :param request: WSCGI request object.
+        :return: rendered HTTP response
+        """
+
+        # Get HTTP response from processing the form in self.form_class
+        response = super(UpdateRecipeView, self).post(self, request, *args, **kwargs)
+
+        # If a response of 200 is returned, then the form failed and isn't redirecting to a new
+        # recipe.
+        if response.status_code == 200:
+            # Todo: Add checks for ingredient fields to throw all form errors at one time.
+            return response
+
+        self.save_recipe_ingredients(request.POST)
+
+        return response
