@@ -89,12 +89,13 @@ class TestRecipe(TestCase):
         for quantity in quantities:
             Quantity.objects.create(**quantity)
 
+        self.client = Client()
+
     def test_00_create_recipe_fail(self):
         """
         Creating a recipe without a name should fail.
-        :return:
         """
-        client = Client()
+        # Build post data
         post_data = {
             'recipe-directions': 'bar',
             'ingredient_0-quantity_amount': '1 1/2',
@@ -102,30 +103,40 @@ class TestRecipe(TestCase):
             'ingredient_1-quantity_amount': '2',
             'ingredient_1-ingredient': 'eggs'
         }
-        response = client.post(reverse('recipes.views.create'), post_data)
+
+        # Make post request to create a recipe
+        response = self.client.post(
+            reverse('recipes.views.create'),
+            post_data
+        )
         self.assertContains(response, 'This field is required', status_code=200)
 
     def test_01_create_and_get_recipe(self):
         """
         A recipe can be created and retrieved.
+<<<<<<< HEAD
         :return:
         """
-        client = Client()
+        # Build post data
         post_data = {
             'recipe-name': 'foo',
             'recipe-directions': 'bar',
             'ingredient_0-quantity_amount': '1 1/2',
             'ingredient_0-ingredient': 'flour',
-            'ingredient_0-unit': 'cup',
+            'ingredient_0-unit': Quantity.objects.get(name__iexact='Cup').id,
             'ingredient_1-quantity_amount': '2',
-            'ingredient_1-unit': 'count',
+            'ingredient_1-unit': Quantity.objects.get(name__iexact='Count').id,
             'ingredient_1-ingredient': 'eggs'
         }
-        response = client.post(
+
+        # Make post request to create a recipe
+        response = self.client.post(
             reverse('recipes.views.create'),
             post_data,
             follow=True
         )
+
+        # Make sure the form is redirecting properly
         self.assertRedirects(
             response,
             '/recipes/1',
@@ -135,29 +146,45 @@ class TestRecipe(TestCase):
             msg_prefix='',
             fetch_redirect_response=True
         )
+
+        # Get the newly created recipe
         self.assertTrue(Recipe.objects.get(name='foo'))
         recipe = Recipe.objects.get(name='foo')
+
+        # Test that the recipe contains both incredients specified in the post data
         self.assertEqual(len(recipe.recipe_ingredients), 2)
         eggs = RecipeIngredient.objects.get(
             recipe=recipe,
             ingredient=Ingredient.objects.get(name='eggs')
         )
 
-        response = client.get(reverse('recipes.views.recipe_view', args=[str(recipe.id)]))
+        # Get each of the ingredients to test
+        eggs = RecipeIngredient.objects.get(
+            recipe=recipe,
+            ingredient=Ingredient.objects.get(name='eggs')
+        )
+        flour = RecipeIngredient.objects.get(
+            recipe=recipe,
+            ingredient=Ingredient.objects.get(name='flour')
+        )
+
+        # Test a get request on the recipe created above
+        Response = self.client.get(
+            reverse('recipes.views.recipe_view', args=[str(recipe.id)])
+        )
         self.assertEqual(response.context['recipe'].name, post_data['recipe-name'])
         self.assertEqual(response.context['recipe'].directions, post_data['recipe-directions'])
         self.assertEqual(len(response.context['recipe_ingredients']), 2)
 
     @skip('Need to detect the form error properly')
     def test_02_create_recipe_invalid(self):
-        client = Client()
         post_data = {
             'recipe-name': 'foo',
             'recipe-directions': 'bar',
             'ingredient_0-quantity_amount': '1 1 1/2',
             'ingredient_0-ingredient': 'flour',
         }
-        response = client.post('/recipes/create', post_data)
+        response = self.client.post('/recipes/create', post_data)
         self.assertRedirects(
             response,
             '/recipes/1',
@@ -168,3 +195,7 @@ class TestRecipe(TestCase):
             fetch_redirect_response=True)
         recipe = Recipe.objects.get(name='foo')
         self.assertContains(response, 'Quantity is not a valid number or fraction.', status_code=302)
+
+    def test_03_update_recipe(self):
+        # Create a recipe to update.
+        pass
