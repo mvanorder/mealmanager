@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link
         rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+        href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
     <!-- build:css -->
     <link rel="stylesheet" href="{% static "css/style.css" %}">
     <!-- endbuild -->
@@ -38,7 +38,7 @@
             <li><a href="#">Disabled</a></li>
           </ul>
 
-          <ul id="nav-mobile" class="side-nav">
+          <ul id="slide-out" class="sidenav">
             <li class="active"><a class="nav-link" href="#">Home</a></li>
             <li><a href="{% url 'recipes.views.recipes_view' %}">Recipes</a></li>
             <li><a href="{% url 'recipes.views.create' %}">Create recipe</a></li>
@@ -68,11 +68,22 @@
         crossorigin="anonymous"></script>
     <!-- Compiled and minified JavaScript -->
     <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js">
+        src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js">
     </script>
     <script>
       window.jQuery || document.write('<script src="js/vendor/jquery-3.3.1.min.js"><\/script>')
-      $('.button-collapse').sideNav();
+      var elem = document.querySelector('.sidenav');
+      var instance = M.Sidenav.init(elem);
+
+      // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
+      // var collapsibleElem = document.querySelector('.collapsible');
+      // var collapsibleInstance = M.Collapsible.init(collapsibleElem, options);
+
+      // Or with jQuery
+
+      $(document).ready(function(){
+        $('.sidenav').sidenav();
+      });
     </script>
     <!-- Custom JS -->
     {% block custom_js %}
