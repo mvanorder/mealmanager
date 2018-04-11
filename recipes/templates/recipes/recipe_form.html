@@ -3,14 +3,10 @@
 
 {% block content %}
       <div class="row">
-        <div class="col-12">
+        <div class="col s12">
           <form action="" method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <div id="ingredients">
-              <div type="button" class="btn btn-success" onclick="addIngredient()">Add ingredient</div><br />
-
-            </div>
             {% for ingredient in ingredients %}
             <div class="multiform multiform-item row">
               <div class="input-field col m1">
@@ -28,7 +24,10 @@
             </div>
             {% endfor %}
             <br/>
-            <div class="multiform">
+            <div class="multiform row">
+              <div id="multiform-add">
+                New Ingredient
+              </div>
               <div class="input-field col m1">
                 {{ ingredient_item.quantity_amount }}
                 <label>{{ ingredient.quantity_amount.label }}</label>
@@ -38,10 +37,11 @@
                 <label>Quantity type</label>
               </div>
               <div class="input-field col m7">
-              </div>
-              <div class="input-field col m4">
                 {{ ingredient_item.ingredient }}
                 <label>{{ ingredient.ingredient.label }}</label>
+              </div>
+              <div id="multiform-remove" class="col m2">
+                Remove
               </div>
             </div>
             <input type="submit" value="Save" class="btn btn-primary" />
@@ -53,7 +53,10 @@
 {% block custom_js %}
       <script src="{% static 'js/multiform.js' %}"></script>
       <script>
-        $( ".multiform").multiForm("{{ ingredient_prefix }}");
+        function addItem(){
+          $('select').formSelect();
+        }
+        $( ".multiform").multiForm("{{ ingredient_prefix }}", addItem);
         var elem = document.querySelector('select');
         var instance = M.FormSelect.init(elem);
 
