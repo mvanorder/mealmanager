@@ -51,4 +51,4 @@ class RecipeIngredientForm(ModelForm):
             }
         else:
             initial = None
-        super(RecipeIngredientForm, self).__init__(*args, **kwargs, initial=initial)
+        super(RecipeIngredientForm, self).__init__(*args, initial=initial, **kwargs)
