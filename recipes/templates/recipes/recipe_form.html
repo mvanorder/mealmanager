@@ -3,28 +3,46 @@
 
 {% block content %}
       <div class="row">
-        <div class="col-12">
+        <div class="col s12">
           <form action="" method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <div id="ingredients">
-              <div type="button" class="btn btn-success" onclick="addIngredient()">Add ingredient</div><br />
-
-            </div>
             {% for ingredient in ingredients %}
-            <div class="multiform multiform-item">
-              {{ ingredient.quantity_amount.label }}
-              {{ ingredient.quantity_amount }}
-              {{ ingredient.quantity }}
-              {{ ingredient.ingredient }}
+            <div class="multiform multiform-item row">
+              <div class="input-field col m1">
+                {{ ingredient.quantity_amount }}
+                <label>{{ ingredient.quantity_amount.label }}</label>
+              </div>
+              <div class="input-field col m3">
+                {{ ingredient.quantity }}
+                <label>Quantity type</label>
+              </div>
+              <div class="input-field col m7">
+                {{ ingredient.ingredient }}
+                <label>{{ ingredient.ingredient.label }}</label>
+              </div>
             </div>
             {% endfor %}
             <br/>
-            <div class="multiform">
-              {{ ingredient_item.quantity_amount.label }}
-              {{ ingredient_item.quantity_amount }}
-              {{ ingredient_item.quantity }}
-              {{ ingredient_item.ingredient }}
+            <div class="multiform row">
+              <div id="multiform-add">
+                New Ingredient
+              </div>
+              <div class="input-field col m1">
+                {{ ingredient_item.quantity_amount }}
+                <label>{{ ingredient.quantity_amount.label }}</label>
+              </div>
+              <div class="input-field col m3">
+                {{ ingredient_item.quantity }}
+                <label>Quantity type</label>
+              </div>
+              <div class="input-field col m7">
+                {{ ingredient_item.ingredient }}
+                <label>{{ ingredient.ingredient.label }}</label>
+              </div>
+              <div id="multiform-remove" class="col m2">
+                Remove
+              </div>
             </div>
             <input type="submit" value="Save" class="btn btn-primary" />
           </form>
@@ -35,6 +53,17 @@
 {% block custom_js %}
       <script src="{% static 'js/multiform.js' %}"></script>
       <script>
-        $( ".multiform").multiForm("{{ ingredient_prefix }}");
+        function addItem(){
+          $('select').formSelect();
+        }
+        $( ".multiform").multiForm("{{ ingredient_prefix }}", addItem);
+        var elem = document.querySelector('select');
+        var instance = M.FormSelect.init(elem);
+
+        // Or with jQuery
+
+        $(document).ready(function(){
+          $('select').formSelect();
+        });
       </script>
 {% endblock %}

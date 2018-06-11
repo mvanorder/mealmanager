@@ -25,7 +25,7 @@ SECRET_KEY = 'esob(3u5f63t6a@80yx-)w0s4_9*9&!##^bjq6^)pj6*!3ii0l'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['malcolmsmealmanager.com', '35.232.245.129', '127.0.0.1']
 
 
 # Application definition
@@ -76,8 +76,17 @@ WSGI_APPLICATION = 'mealmanager.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        #'ENGINE': 'django.db.backends.sqlite3',
+        #'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # mealmanager
+        # DoFkGJG1rpOziler
+
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mealmanager',
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 
@@ -118,8 +127,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
+STATIC_URL = 'http://storage.googleapis.com/meal-manager/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static_root")

@@ -1,7 +1,7 @@
 /*
  *
- * MultiForm 0.2 - Replicate a set of fields in a form for a one-to-many form.
- * Version 0.2b
+ * MultiForm 0.3 - Replicate a set of fields in a form for a one-to-many form.
+ * Version 0.3b
  * @requires jQuery v1.4.3
  *
  * Copyright (c) 2017 Malcolm VanOrder
@@ -73,7 +73,9 @@ function cloneFormNodes(nodes, prefix) {
   var newNodes = new Array();
 
   for (var i = 0; i < nodes.length; i++) {
-    if (nodes[i].nodeName != "#text") {
+    // Ignore all #text, #comment and #document nodes as they thrown an illegal character error in
+    // createElement().
+    if (!nodes[i].nodeName.includes('#')) {
       // Use createElement to create clones for all except #text nodes to avoid modifying the original.
       newNodes[i] = document.createElement(nodes[i].nodeName);
 
@@ -121,10 +123,17 @@ function cloneFormNodes(nodes, prefix) {
  * @param {object} baseObject - The DOM object containing the form objects to be templated.
  * @param {string} prefix - The prefix to set on all field names.
  */
-function Template(baseObject, prefix) {
+function Template(baseObject, prefix, removeButton) {
   this.nodes = Array();
   this.prefix = prefix;
   this.currentIteration = 0;
+  this.classList = [];
+  this.removeButton = removeButton || null;
+
+  // Build a list of classes to be used on instanaces of the template.
+  for (var classIndex = 0, classCount = baseObject.classList.length; classIndex < classCount; classIndex++) {
+    this.classList.push(baseObject.classList[classIndex]);
+  }
 
   // Create a template list of nodes from the nodes in the baseObject and remove the original nodes.
   for (var nodeIndex = 0, nodeCount = baseObject.childNodes.length; nodeIndex < nodeCount; nodeIndex++) {
@@ -140,10 +149,22 @@ function Template(baseObject, prefix) {
     var prefix = "";
     var nodes;
     var instanceContainer = document.createElement('div');
-    var removeButton = document.createElement('div');
+    var removeButton = this.removeButton || document.createElement('div');
+
+    // Add each class from the template to the new instance.
+    for (var classIndex = 0, classCount = this.classList.length; classIndex < classCount; classIndex++) {
+      instanceContainer.classList.add(this.classList[classIndex]);
+    }
+    // Remove multiform and multiform-item classes form the new instance as they're only
+    // used to itentify items to be cloned.
+    instanceContainer.classList.remove("multiform", "multiform-item");
 
     // Create a button to remove this instance.
-    removeButton.innerHTML = 'Remove';
+    if (this.removeButton) {
+      removeButton = this.removeButton.cloneNode(true);
+    } else {
+      removeButton.innerHTML = 'Remove';
+    }
     removeButton.setAttribute('type', 'button');
     removeButton.setAttribute('class', 'btn btn-danger multiform-remove');
 
@@ -178,12 +199,15 @@ function Template(baseObject, prefix) {
  * @constructor
  * @param {object} containerObject - The DOM object containing multiform.
  */
-function MultiformContainer(containerObject) {
+function MultiformContainer(containerObject, addButton) {
   this.container = containerObject;
   this.controlsContainer = document.createElement('div');
-  this.addButton = document.createElement('div');
+  this.addButton = addButton || null;
 
-  this.addButton.innerHTML = 'Add';
+  if (this.addButton == null){
+    this.addButton = document.createElement('div');
+    this.addButton.innerHTML = 'Add';
+  }
   this.addButton.setAttribute('type', 'button');
   this.addButton.setAttribute('class', 'btn btn-success');
   this.addButton.setAttribute('id', 'multiform-add');
@@ -210,24 +234,42 @@ function MultiformContainer(containerObject) {
   /**
    * Build a multi-record form from a jQuery selector.
    * @param {string} prefix - The prefix to set on all field names.
+   * @param {function} func - An optional function to be called on add button click and after the appendChile completes.
    */
-  $.fn.multiForm = function(prefix) {
+  $.fn.multiForm = function(prefix, func) {
     // Create a list of items to prepopulate into the form and an array to populate with templates for these items.
     var items = this.filter(".multiform-item");
     var itemsArray = Array();
+    var postAddFunc = func || null;
+    var addButton = null;
+    var removeButton = null;
+
+    if ($(this.not(".multiform-item")).find('#multiform-add')[0]) {
+      addButton = $(this.not(".multiform-item")).find('#multiform-add')[0].cloneNode(true);
+      this.not(".multiform-item")[0].removeChild($(this.not(".multiform-item")).find('#multiform-add')[0]);
+    }
+    if ($(this.not(".multiform-item")).find('#multiform-remove')[0]) {
+      removeButton = $(this.not(".multiform-item")).find('#multiform-remove')[0].cloneNode(true);
+      this.not(".multiform-item")[0].removeChild($(this.not(".multiform-item")).find('#multiform-remove')[0]);
+    }
 
     // Create a template object from the first object in the jQuery selector.
-    var template = new Template(this.not(".multiform-item")[0], prefix);
+    var template = new Template(this.not(".multiform-item")[0], prefix, removeButton);
 
     // Create the container for all form entries.
-    var container = new MultiformContainer(this.not(".multiform-item")[0]);
+    var container = new MultiformContainer(this.not(".multiform-item")[0], addButton);
+
+    // Reset the container's classList and set the id
+    container.container.classList = [];
+    container.container.id = 'multiform-container';
 
     // Create templates from multiform-item marked with multiform-item class and populate them into the form.
     for (var itemIndex = 0, size = items.length; itemIndex < items.length; itemIndex++) {
       itemsArrayIndex = itemsArray.length;
-      itemsArray[itemsArrayIndex] = new Template(items[itemIndex], prefix);
+      itemsArray[itemsArrayIndex] = new Template(items[itemIndex], prefix, removeButton);
       itemsArray[itemsArrayIndex].currentIteration = itemIndex;
       container.appendChild(itemsArray[itemsArrayIndex].createInstance());
+      items[itemIndex].parentElement.removeChild(items[itemIndex]);
     }
 
     // Since there may be items prepopulated, the form iterations for new items should start after this index.
@@ -239,8 +281,11 @@ function MultiformContainer(containerObject) {
     // When the add button is clicked create an instance of the template and append it to the container.
     $("#multiform-add").click(function() {
       container.appendChild(template.createInstance());
-    });
 
+      if (postAddFunc) {
+        postAddFunc();
+      }
+    });
     return this;
   };
 }( jQuery ));
