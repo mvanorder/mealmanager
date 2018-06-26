@@ -1,10 +1,29 @@
 from decimal import Decimal
 import re
 from django.forms import ModelForm, ValidationError, TextInput
+from django.forms.widgets import  Textarea
 from .models import RecipeIngredient, Recipe
 
 
-class RecipeForm(ModelForm):
+class MaterializeModelForm(ModelForm):
+
+    def materialize(self):
+        """Returns this form rendered for materialize-css."""
+        for name, field in self.fields.items():
+            bf = self[name]
+            if isinstance(bf.field.widget, Textarea):
+                bf.field.widget.attrs['class']="materialize-textarea"
+
+        return self._html_output(
+            normal_row='<div class="input-field" %(html_class_attr)s>%(label)s %(field)s%(help_text)s</div>',
+            error_row='%s',
+            row_ender='</div>',
+            help_text_html=' <span class="helptext">%s</span>',
+            errors_on_separate_row=True
+        )
+
+
+class RecipeForm(MaterializeModelForm):
 
     prefix = 'recipe'
 
@@ -19,7 +38,7 @@ class RecipeForm(ModelForm):
         return super(RecipeForm, self).is_valid()
 
 
-class RecipeIngredientForm(ModelForm):
+class RecipeIngredientForm(MaterializeModelForm):
 
     class Meta:
         model = RecipeIngredient
