@@ -8,7 +8,7 @@
             {% csrf_token %}
             {{ form.as_p }}
             {% for ingredient in ingredients %}
-            <div class="multiform multiform-item row">
+            <div class="{{ ingredient_prefix }}-multiform_item row">
               <div class="input-field col m1">
                 {{ ingredient.quantity_amount }}
                 <label>{{ ingredient.quantity_amount.label }}</label>
@@ -24,8 +24,8 @@
             </div>
             {% endfor %}
             <br/>
-            <div class="multiform row">
-              <div id="multiform-add">
+            <div class="multiform-template row" data-prefix="{{ ingredient_prefix }}">
+              <div id="{{ ingredient_prefix }}-add_button" class="btn waves-effect waves-light">
                 New Ingredient
               </div>
               <div class="input-field col m1">
@@ -53,14 +53,11 @@
 {% block custom_js %}
       <script src="{% static 'js/multiform.js' %}"></script>
       <script>
-        function addItem(){
-          $('select').formSelect();
-        }
-        $( ".multiform").multiForm("{{ ingredient_prefix }}", addItem);
-        var elem = document.querySelector('select');
-        var instance = M.FormSelect.init(elem);
-
-        // Or with jQuery
+        $( ".multiform-template").multiFormTemplate({
+          postAddFunction: function() {
+            $('select').formSelect();
+          }
+        });
 
         $(document).ready(function(){
           $('select').formSelect();
