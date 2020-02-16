@@ -1,4 +1,4 @@
-Django>=1.11.15,<2.0
+Django>=1.11.28,<2.0
 
 psycopg2==2.7.4
 gunicorn==19.7.1
